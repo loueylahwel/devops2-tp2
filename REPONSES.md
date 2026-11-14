@@ -2,8 +2,8 @@
 
 **Nom Prénom :** Louey Lahwel
 
-> Brouillon. Les questions qui demandent d'observer un test sur Docker (Q3, Q9, Q11, Q14) sont à
-> compléter après exécution sur votre machine.
+> Réponses vérifiées en exécutant la stack. Captures dans `captures/` : le front affichant les
+> articles (`frontend-articles.png`) et la table `articles` dans pgAdmin (`pgadmin-articles.png`).
 
 **Q1.** `backend/config/database.js` lit `DATABASE_CLIENT` (ici `postgres`), `DATABASE_HOST`,
 `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` (et `DATABASE_URL` en
@@ -17,7 +17,10 @@ sinon ils sont publiés dans l'historique Git et il faut tous les régénérer.
 
 **Q3.** `docker compose down` arrête et supprime les conteneurs et le réseau, mais garde les
 volumes : les données PostgreSQL restent. `docker compose down -v` supprime aussi les volumes
-(`pgdata`, etc.) : la base est perdue. *(À vérifier par un test.)*
+(`pgdata`, etc.) : la base est perdue. Testé : avec 3 articles publiés (6 lignes), après
+`docker compose down` puis `up -d`, la table `articles` contient toujours 6 lignes ; après
+`docker compose down -v`, les volumes `tp2_pgdata`, `tp2_pgadmin-data` et `tp2_strapi-uploads` sont
+supprimés et, après `up -d`, la table `articles` est vide (0 ligne, Strapi recrée un schéma vierge).
 
 **Q4.** Compose remplace les `${VAR}` de son fichier par les valeurs de `.env` **avant** de lancer le
 conteneur. Le healthcheck `CMD-SHELL` est en revanche exécuté dans le conteneur. Le `$$` échappe le
@@ -52,7 +55,8 @@ Le front doit appeler `http://strapi:1337` (nom du service, sur le réseau `fron
 **Q11.** Le Dockerfile du front a trois étapes (`deps`, `builder`, `runner`). L'image finale ne
 contient que `public/`, le `.next/standalone` (serveur Node minimal avec les dépendances de
 production) et `.next/static`. Sans `output: "standalone"`, le dossier `.next/standalone` n'existe pas
-et le `COPY` échoue au build. La taille observée de l'image finale `tp2/frontend` est de **334 Mo** (`docker images tp2/frontend`).
+et le `COPY` échoue au build. Testé en commentant la ligne : `docker build` s'arrête sur
+`"/app/.next/standalone": not found`. La taille observée de l'image finale `tp2/frontend` est de **334 Mo** (`docker images tp2/frontend`).
 
 **Q12.** `strapi` est dans les deux réseaux : il doit parler à PostgreSQL (`backend`) et être
 joignable par le front (`frontend`). Ne pas publier de port pour `postgres` réduit la surface
@@ -68,4 +72,7 @@ Strapi via un reverse proxy.
 **Q14.** `unless-stopped` redémarre le conteneur après un crash ou au redémarrage de Docker, sauf s'il
 a été arrêté volontairement. `docker compose stop` ou `kill` est un arrêt volontaire : Docker ne le
 relance pas. Il le relance automatiquement seulement après un arrêt non voulu (crash, erreur, reboot
-de la machine si Docker redémarre).
+de la machine si Docker redémarre). Testé : 20 s après `docker compose stop strapi`, le conteneur est
+toujours `exited` ; après un crash simulé (`kill 1` dans le conteneur), Docker le relance seul
+(`RestartCount` passe à 1). Pendant que Strapi est arrêté, le front affiche « Impossible de joindre
+Strapi : TypeError: fetch failed ».
