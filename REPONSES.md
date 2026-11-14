@@ -40,9 +40,9 @@ des fichiers copiés, pour que l'application puisse les lire (et écrire, par ex
 (`pg_isready`). Sans cela, Compose ne fait que démarrer le conteneur PostgreSQL : Strapi peut tenter
 de se connecter alors que la base n'accepte pas encore de connexions, et échouer au démarrage.
 
-**Q9.** *(À compléter après observation dans pgAdmin.)* Strapi 5 stocke deux lignes par article
-publié : une version brouillon et une version publiée, qui partagent le même `document_id` mais ont
-des `id` différents.
+**Q9.** Trois articles publiés donnent **six lignes** dans la table `articles`. Chaque article a une
+ligne brouillon (`published_at` vide) et une ligne publiée (`published_at` renseigné). Les deux lignes
+partagent le même `document_id` mais ont des `id` différents (1 et 4, 2 et 5, 3 et 6).
 
 **Q10.** Dans le conteneur `frontend`, `localhost` désigne ce conteneur, où il n'y a pas de Strapi.
 Le front doit appeler `http://strapi:1337` (nom du service, sur le réseau `frontend`).
@@ -50,7 +50,7 @@ Le front doit appeler `http://strapi:1337` (nom du service, sur le réseau `fron
 **Q11.** Le Dockerfile du front a trois étapes (`deps`, `builder`, `runner`). L'image finale ne
 contient que `public/`, le `.next/standalone` (serveur Node minimal avec les dépendances de
 production) et `.next/static`. Sans `output: "standalone"`, le dossier `.next/standalone` n'existe pas
-et le `COPY` échoue au build. *(Taille de l'image : à compléter avec `docker images tp2/frontend`.)*
+et le `COPY` échoue au build. La taille observée de l'image finale `tp2/frontend` est de **334 Mo** (`docker images tp2/frontend`).
 
 **Q12.** `strapi` est dans les deux réseaux : il doit parler à PostgreSQL (`backend`) et être
 joignable par le front (`frontend`). Ne pas publier de port pour `postgres` réduit la surface
